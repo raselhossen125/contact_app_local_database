@@ -1,12 +1,15 @@
-// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, sized_box_for_whitespace, unused_local_variable
+// ignore_for_file: prefer_const_constructors, use_key_in_widget_constructors, sized_box_for_whitespace, unused_local_variable, avoid_print, unrelated_type_equality_checks, use_build_context_synchronously
 
 import 'dart:io';
-
+import 'package:contact_app_local_database/providers/contact_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../models/contact_model.dart';
 import '../untils/colors.dart';
 import '../widget/back_btn.dart';
+import '../widget/textField_widget.dart';
 
 class NewContactPage extends StatefulWidget {
   static const routeName = '/new-contact';
@@ -19,10 +22,25 @@ class _NewContactPageState extends State<NewContactPage> {
   late Size size;
   String? imagePath;
   String? dob;
-  String? genderGroupValue;
+  String genderGroupValue = '';
   ImageSource source = ImageSource.camera;
-
   final formKey = GlobalKey<FormState>();
+
+  final nameController = TextEditingController();
+  final phoneController = TextEditingController();
+  final emailController = TextEditingController();
+  final addressController = TextEditingController();
+  final websiteController = TextEditingController();
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    phoneController.dispose();
+    emailController.dispose();
+    addressController.dispose();
+    websiteController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +61,12 @@ class _NewContactPageState extends State<NewContactPage> {
               actionIcon: Icons.save,
               actionIconColor: Colors.deepOrange,
               actionIconFunction: () {
-                // _saveButton();
+                _saveButton();
               },
             ),
             Expanded(
               child: ListView(
-                padding:
-                    EdgeInsets.only(top: 0, left: 10, right: 10, bottom: 10),
+                padding: EdgeInsets.only(top: 5, left: 5, right: 5, bottom: 10),
                 children: [
                   Container(
                     height: 172,
@@ -112,7 +129,7 @@ class _NewContactPageState extends State<NewContactPage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: 5),
                   Container(
                     height: 110,
                     width: size.width,
@@ -202,13 +219,43 @@ class _NewContactPageState extends State<NewContactPage> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: 10,
+                  SizedBox(height: 10),
+                  Form(
+                    key: formKey,
+                    child: Column(
+                      children: [
+                        TextFromFieldWidget(
+                          controller: nameController,
+                          prefixIcon: Icons.person,
+                          hintText: 'Enter your name',
+                        ),
+                        SizedBox(height: 10),
+                        TextFromFieldWidget(
+                          controller: phoneController,
+                          prefixIcon: Icons.phone,
+                          hintText: 'Enter your phone number',
+                        ),
+                        SizedBox(height: 10),
+                        TextFromFieldWidget(
+                          controller: emailController,
+                          prefixIcon: Icons.email,
+                          hintText: 'Enter your email',
+                        ),
+                        SizedBox(height: 10),
+                        TextFromFieldWidget(
+                          controller: addressController,
+                          prefixIcon: Icons.location_on,
+                          hintText: 'Enter your address',
+                        ),
+                        SizedBox(height: 10),
+                        TextFromFieldWidget(
+                          controller: websiteController,
+                          prefixIcon: Icons.web,
+                          hintText: 'Enter your website url',
+                        ),
+                      ],
+                    ),
                   ),
-                  // Form(
-                  //   key: formKey,
-                  //   child:
-                  // ),
                 ],
               ),
             ),
@@ -238,6 +285,24 @@ class _NewContactPageState extends State<NewContactPage> {
       setState(() {
         dob = DateFormat('dd/MM/yyyy').format(selectedDate);
       });
+    }
+  }
+
+  void _saveButton() async{
+    final contact = ContactModel(
+      name: nameController.text,
+      number: phoneController.text,
+      email: emailController.text,
+      address: addressController.text,
+      dob: dob,
+      gender: genderGroupValue,
+      image: imagePath,
+      website: websiteController.text,
+    );
+    print(contact.toString());
+    final status = await Provider.of<ContactProvider>(context,listen: false).addNewContact(contact);
+    if(status) {
+      Navigator.of(context).pop();
     }
   }
 }
